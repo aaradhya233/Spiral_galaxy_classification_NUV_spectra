@@ -1,0 +1,30 @@
+# FITS data — too large for GitHub (can be 5–50 MB each)
+*.fits
+train/
+test/
+fits/
+featurestrain/
+featurestest/
+train_normalized/
+train_augmented/
+train_resized/
+test_cutout/
+recreate/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+*.egg-info/
+.env
+.venv/
+
+# Model weights
+*.h5
+*.pkl
+*.joblib
+
+# OS
+.DS_Store
+Thumbs.db
