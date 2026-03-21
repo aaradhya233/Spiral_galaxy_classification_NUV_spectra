@@ -75,12 +75,12 @@ galaxy-bar-classification/
 
 | Model | Accuracy | Unbarred Recall | Barred Recall | AUC-ROC |
 |-------|----------|-----------------|---------------|---------|
-| SVM (RBF) | 56.41% | 39.58% | 68.12% | — |
+| SVM (RBF) | 56.41% | 39.58% | 68.12% | 0.583 |
 | CNN + Ring Features | 66.67% | 18.75% | 100% | — |
-| RF Version 1 (Baseline) | 60.68% | 43.75% | 72.46% | — |
-| RF Version 2 (Weighted features) | 64.96% | 45.83% | 78.26% | — |
-| RF Version 3 (22 features) | 64.10% | 47.92% | 75.36% | — |
-| RF Version 4 (32 engineered features) | 68.38% | 54.17% | 78.26% | — |
+| RF Version 1 (Baseline) | 60.68% | 43.75% | 72.46% | ~0.648 |
+| RF Version 2 (Weighted features) | 64.96% | 45.83% | 78.26% | ~0.677 |
+| RF Version 3 (22 features) | 64.10% | 47.92% | 75.36% | ~0.663 |
+| RF Version 4 (32 engineered features) | 68.38% | 54.17% | 78.26% | ~0.681 |
 | **RF Version 5 (Centre-focused) ★** | **70.09%** | **68.75%** | **71.01%** | **~0.77** |
 
 **Key finding:** Adding unbarred-specific features (Nuclear_Concentration_Ratio, Bar_Ansae_Test, Spiral_Symmetry_Score) targeting the central galactic region improved minority class (unbarred) recall by **25 percentage points** from baseline to final model.
