@@ -111,4 +111,5 @@ Python 3.11, Astropy, Scikit-learn, Scikit-image, OpenCV, SciPy, NumPy, Matplotl
 ## Author
 
 **Aaradhya Sahu**
+Internship: Space Astronomy Group, URSC-ISRO
 GitHub: [github.com/aaradhya233](https://github.com/aaradhya233)
