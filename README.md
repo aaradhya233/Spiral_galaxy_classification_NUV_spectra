@@ -11,16 +11,16 @@ Research project completed during internship at the Space Astronomy Group (SAG),
 ```
 galaxy-bar-classification/
 ├── notebooks/
-│   ├── 01_testtrainsplit.ipynb          — stratified 80/20 split of FITS files
-│   ├── 02_testtrainlabel.ipynb          — morphological type string → binary label
-│   ├── 03_preprocess.ipynb              — min-max normalisation + 8× augmentation
-│   ├── 04_cropped.ipynb                 — adaptive galaxy cutout + resize to 224×224
-│   ├── 05_FeatureExtraction_train.ipynb — 22 photometric features (training set)
-│   ├── 05b_FeatureExtraction_test.ipynb — 22 photometric features (test set)
-│   ├── 06_newfeatureextraction.ipynb    — centre-focused bar features (V2 improved)
-│   ├── 07_ForestClassify.ipynb          — Random Forest with weighting + threshold tuning
-│   ├── 08_SVM.ipynb                     — RBF-SVM with GridSearchCV
-│   └── 09_confusionmatriximages.ipynb   — visual TP/TN/FP/FN galaxy grid audit
+│   ├── chromeautomate.ipynb             — Selenium automation to bulk-download GALEX NUV FITS from NASA SkyView
+│   ├── testtrainsplit.ipynb             — stratified 80/20 split of 584 FITS files
+│   ├── testtrainlabel.ipynb             — morphological type string → binary label (SB/SAB=1, SA=0)
+│   ├── preprocess.ipynb                 — min-max normalisation + 8× augmentation (4 rotations × flip)
+│   ├── cropped1.ipynb                   — adaptive galaxy detection via radial profile; cutout + resize to 224×224
+│   ├── FeatureExtraction.ipynb          — 22 photometric features per galaxy (run separately on train and test)
+│   ├── newfeatureextraction.ipynb       — centre-focused bar features targeting inner 30–40% of galactic radius (V2)
+│   ├── ForestClassify.ipynb             — Random Forest (V1–V5) with feature weighting + threshold tuning
+│   ├── SVM.ipynb                        — RBF-SVM with GridSearchCV + permutation feature importance
+│   └── confusionmatriximages.ipynb      — visual TP/TN/FP/FN galaxy grid audit from FITS files
 │
 ├── results/
 │   ├── automatic_galaxy_detection_&_cropping/
@@ -35,8 +35,8 @@ galaxy-bar-classification/
 ├── README.md
 ├── requirements.txt
 ├── .gitignore
-├── trainlabel.csv                       — ground truth labels (training)
-├── testlabel.csv                        — ground truth labels (test)
+├── trainlabel.csv                       — ground truth labels (training set)
+├── testlabel.csv                        — ground truth labels (test set)
 ├── train_galaxy_features_improved.csv   — final V5 feature set (training)
 └── test_galaxy_features_improved.csv    — final V5 feature set (test)
 ```
@@ -47,15 +47,16 @@ galaxy-bar-classification/
 
 | Step | Notebook | Description |
 |------|----------|-------------|
-| 1 | `01_testtrainsplit` | Split 584 FITS files 80/20 stratified; save `train.csv` / `test.csv` |
-| 2 | `02_testtrainlabel` | Parse NED morphological type strings → binary label (SB/SAB=1, SA=0) |
-| 3 | `03_preprocess` | Min-max normalisation; 8× augmentation (4 rotations × horizontal flip) |
-| 4 | `04_cropped` | Adaptive galaxy detection via radial profile analysis; intelligent cutout; resize to 224×224 (96.4% success rate) |
-| 5 | `05/05b_FeatureExtraction` | Extract 22 photometric features per galaxy for train and test sets |
-| 6 | `06_newfeatureextraction` | Centre-focused bar feature extraction — targets inner 30–40% of galactic radius where bars actually exist |
-| 7 | `07_ForestClassify` | Random Forest with feature weighting, 7-fold CV, optimal threshold search |
-| 8 | `08_SVM` | RBF-SVM with GridSearchCV + permutation feature importance |
-| 9 | `09_confusionmatriximages` | Load FITS files per TP/TN/FP/FN category; produce 2×2 visual grids for manual audit |
+| 0 | `chromeautomate` | Selenium script to bulk-download GALEX NUV FITS images from NASA SkyView using a coordinates CSV |
+| 1 | `testtrainsplit` | Split 584 FITS files 80/20 stratified; save `train.csv` / `test.csv` |
+| 2 | `testtrainlabel` | Parse NED morphological type strings → binary label (SB/SAB=1, SA=0) |
+| 3 | `preprocess` | Min-max normalisation (1–99th percentile); 8× augmentation (4 rotations × horizontal flip) |
+| 4 | `cropped1` | Adaptive galaxy detection using radial flux profile analysis + background sigma-clipping; intelligent cutout; OpenCV resize to 224×224 (96.4% success rate) |
+| 5 | `FeatureExtraction` | Extract 22 photometric features per galaxy — run once with `input_folder = "train"`, once with `"test"` |
+| 6 | `newfeatureextraction` | Centre-focused bar feature extraction — targets inner 30–40% of galactic radius where bars exist; produces improved CSV used by RF V4 and V5 |
+| 7 | `ForestClassify` | Random Forest V1–V5 with progressive feature engineering, class weighting, 7-fold CV, optimal threshold search |
+| 8 | `SVM` | RBF-SVM with GridSearchCV + permutation feature importance |
+| 9 | `confusionmatriximages` | Load FITS files per TP/TN/FP/FN category; produce 2×2 visual grids for manual audit |
 
 ---
 
@@ -76,7 +77,6 @@ galaxy-bar-classification/
 | Model | Accuracy | Unbarred Recall | Barred Recall | AUC-ROC |
 |-------|----------|-----------------|---------------|---------|
 | SVM (RBF) | 56.41% | 39.58% | 68.12% | 0.583 |
-| CNN + Ring Features | 66.67% | 18.75% | 100% | — |
 | RF Version 1 (Baseline) | 60.68% | 43.75% | 72.46% | ~0.648 |
 | RF Version 2 (Weighted features) | 64.96% | 45.83% | 78.26% | ~0.677 |
 | RF Version 3 (22 features) | 64.10% | 47.92% | 75.36% | ~0.663 |
@@ -85,7 +85,7 @@ galaxy-bar-classification/
 
 **Key finding:** Adding unbarred-specific features (Nuclear_Concentration_Ratio, Bar_Ansae_Test, Spiral_Symmetry_Score) targeting the central galactic region improved minority class (unbarred) recall by **25 percentage points** from baseline to final model.
 
-**Top 3 discriminative features (from feature importance analysis):**
+**Top 3 discriminative features (permutation importance):**
 1. Nuclear Concentration Ratio — 9.32%
 2. Gini Coefficient — 8.88%
 3. Bar Ansae Test — 8.59%
@@ -94,22 +94,23 @@ galaxy-bar-classification/
 
 ## Data
 
-- **Images:** 584 GALEX NUV FITS images from NASA MAST public archive (not included due to file size)
-- **Download:** [mast.stsci.edu](https://mast.stsci.edu)
+- **Images:** 584 GALEX NUV FITS images downloaded from NASA SkyView / MAST (not included due to file size)
+- **Download:** Use `chromeautomate.ipynb` with your own `coordinates.csv`, or fetch directly from [mast.stsci.edu](https://mast.stsci.edu)
 - **Labels:** Derived from NED / HyperLEDA morphological type strings (SB/SAB = barred, SA = unbarred)
-- **Split:** 467 training / 117 test (stratified)
+- **Split:** 467 training / 117 test (stratified, random_state=42)
 - **Class distribution:** Barred 53.9% / Unbarred 45.7% / Unknown 0.4%
 
 ---
 
 ## Stack
 
-Python 3.11, Astropy, Scikit-learn, Scikit-image, OpenCV, SciPy, NumPy, Matplotlib, Seaborn, Pandas
+Python 3.11, Astropy, Scikit-learn, Scikit-image, OpenCV, SciPy, NumPy, Matplotlib, Seaborn, Pandas, Selenium
 
 ---
 
 ## Author
 
 **Aaradhya Sahu**  
-Internship: Space Astronomy Group, URSC-ISRO    
+Internship: Space Astronomy Group, URSC-ISRO  
 GitHub: [github.com/aaradhya233](https://github.com/aaradhya233)
+
